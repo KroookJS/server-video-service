@@ -1,0 +1,2 @@
+PORT=4444
+MONGODB_URI='mongodb+srv://admin:kroook123@cluster0.egjzrm1.mongodb.net/blog?retryWrites=true&w=majority'
