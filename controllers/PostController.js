@@ -1,4 +1,5 @@
-import PostModel from '../models/Post.js';
+import PostModel from "../models/Post.js";
+import UserModel from "../models/User.js";
 
 export const getLastTags = async (req, res) => {
   try {
@@ -13,19 +14,51 @@ export const getLastTags = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      message: 'Не удалось получить тэги',
+      message: "Не удалось получить тэги",
     });
   }
 };
 
 export const getAll = async (req, res) => {
   try {
-    const posts = await PostModel.find().populate('user').exec();
+    const posts = await PostModel.find().populate("user").exec();
+
+    if ("favorite" in req.query) {
+      if (req.query.favorite && req.query.favorite.length) {
+        let arr = req.query.favorite.split(",");
+        posts = posts.filter((item) => arr.includes(item._id.toString()));
+      } else {
+        posts = [];
+      }
+    }
+
     res.json(posts);
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      message: 'Не удалось получить статьи',
+      message: "Не удалось получить статьи",
+    });
+  }
+};
+export const getFavorite = async (req, res) => {
+  try {
+    let posts = await PostModel.find({
+      name: new RegExp(req.query.search, "i"),
+    });
+
+    if ("favorite" in req.query) {
+      if (req.query.favorite && req.query.favorite.length) {
+        let arr = req.query.favorite.split(",");
+        posts = posts.filter((item) => arr.includes(item._id.toString()));
+      } else {
+        posts = [];
+      }
+    }
+    res.json(posts);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось получить статьи",
     });
   }
 };
@@ -42,29 +75,29 @@ export const getOne = async (req, res) => {
         $inc: { viewsCount: 1 },
       },
       {
-        returnDocument: 'after',
+        returnDocument: "after",
       },
       (err, doc) => {
         if (err) {
           console.log(err);
           return res.status(500).json({
-            message: 'Не удалось вернуть статью',
+            message: "Не удалось вернуть статью",
           });
         }
 
         if (!doc) {
           return res.status(404).json({
-            message: 'Статья не найдена',
+            message: "Статья не найдена",
           });
         }
 
         res.json(doc);
-      },
-    ).populate('user');
+      }
+    ).populate("user");
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      message: 'Не удалось получить статьи',
+      message: "Не удалось получить статьи",
     });
   }
 };
@@ -77,29 +110,30 @@ export const remove = async (req, res) => {
       {
         _id: postId,
       },
+
       (err, doc) => {
         if (err) {
           console.log(err);
           return res.status(500).json({
-            message: 'Не удалось удалить статью',
+            message: "Не удалось удалить статью",
           });
         }
 
         if (!doc) {
           return res.status(404).json({
-            message: 'Статья не найдена',
+            message: "Статья не найдена",
           });
         }
 
         res.json({
           success: true,
         });
-      },
+      }
     );
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      message: 'Не удалось получить статьи',
+      message: "Не удалось получить статьи",
     });
   }
 };
@@ -109,8 +143,59 @@ export const create = async (req, res) => {
     const doc = new PostModel({
       title: req.body.title,
       text: req.body.text,
+      videoUrl: req.body.videoUrl,
+      privUrl: req.body.privUrl,
+      tags: req.body.tags.split(","),
+      category: req.body.category.split(","),
+      model: req.body.model.split(","),
+      user: req.body.userId,
+    });
+
+    const post = await doc.save();
+
+    UserModel.findByIdAndUpdate(
+      {
+        _id: req.body.userId,
+      },
+      {
+        $push: { videos: post._id },
+      },
+      {
+        returnDocument: "after",
+      },
+      (err, doc) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).json({
+            message: "Не удалось добавиь в usera id",
+          });
+        }
+
+        if (!doc) {
+          return res.status(404).json({
+            message: "Статья не найдена",
+          });
+        }
+        // Попробуй закоментить
+        /*    res.json({
+          success: "Успех мой второе имя",
+        }); */
+      }
+    );
+
+    res.json(post);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({
+      message: "Не удалось создать статью",
+    });
+  }
+};
+export const createPhoto = async (req, res) => {
+  try {
+    const doc = new PostModel({
+      text: req.body.text,
       imageUrl: req.body.imageUrl,
-      tags: req.body.tags.split(','),
       user: req.userId,
     });
 
@@ -120,7 +205,7 @@ export const create = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      message: 'Не удалось создать статью',
+      message: "Не удалось загрузить фото",
     });
   }
 };
@@ -138,8 +223,8 @@ export const update = async (req, res) => {
         text: req.body.text,
         imageUrl: req.body.imageUrl,
         user: req.userId,
-        tags: req.body.tags.split(','),
-      },
+        tags: req.body.tags.split(","),
+      }
     );
 
     res.json({
@@ -148,7 +233,33 @@ export const update = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      message: 'Не удалось обновить статью',
+      message: "Не удалось обновить статью",
+    });
+  }
+};
+
+export const getAllPostUser = async (req, res) => {
+  try {
+    let users = await PostModel.find({
+      name: new RegExp(req.query.search, "i"),
+    });
+
+    if ("favorite" in req.query) {
+      if (req.query.favorite && req.query.favorite.length) {
+        let arr = req.query.favorite.split(",");
+        users = users.filter((item) => arr.includes(item._id.toString()));
+      } else {
+        users = [];
+      }
+    }
+
+    users = Array.from(users);
+
+    res.json(users);
+  } catch (error) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось получить посты пользователя",
     });
   }
 };

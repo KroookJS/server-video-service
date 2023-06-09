@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const PostSchema = new mongoose.Schema(
   {
@@ -15,20 +15,29 @@ const PostSchema = new mongoose.Schema(
       type: Array,
       default: [],
     },
+    category: {
+      type: Array,
+      default: [],
+    },
+    model: {
+      type: Array,
+      default: [],
+    },
     viewsCount: {
       type: Number,
       default: 0,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
+      ref: "User",
+      /* required: true, */
     },
-    imageUrl: String,
+    videoUrl: String,
+    privUrl: String,
   },
   {
     timestamps: true,
-  },
+  }
 );
 
-export default mongoose.model('Post', PostSchema);
+export default mongoose.model("Post", PostSchema);
