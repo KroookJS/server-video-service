@@ -2,7 +2,6 @@ import express from "express";
 import fs from "fs";
 import multer from "multer";
 import cors from "cors";
-
 import mongoose from "mongoose";
 
 import {
@@ -24,10 +23,11 @@ import {
   ModelController,
 } from "./controllers/index.js";
 
+const PORT = 4444;
+const dbUrl =
+  "mongodb+srv://bobBegimot:blackWoods2@cluster69.zrzr9lx.mongodb.net/?retryWrites=true&w=majority";
 mongoose
-  .connect(
-    "mongodb+srv://bobBegimot:blackWoods2@cluster69.zrzr9lx.mongodb.net/?retryWrites=true&w=majority"
-  )
+  .connect(dbUrl)
   .then(() => console.log("DB ok"))
   .catch((err) => console.log("DB error", err));
 
@@ -156,9 +156,9 @@ app.patch(
   PostController.update
 );
 
-app.listen(4444, (err) => {
+app.listen(PORT || 4444, (err) => {
   if (err) {
     return console.log(err);
   }
-  console.log("Server OK");
+  console.log("Server OK " + PORT);
 });
