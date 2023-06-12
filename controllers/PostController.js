@@ -147,8 +147,8 @@ export const create = async (req, res) => {
       privUrl: req.body.privUrl,
       tags: req.body.tags.split(","),
       category: req.body.category.split(","),
-      model: req.body.model.split(","),
       user: req.body.userId,
+      /* model: req.body.model.split(","), */
     });
 
     const post = await doc.save();
